@@ -1,45 +1,57 @@
 'use client';
-import { useMemo } from 'react';
+import * as React from 'react';
 
-type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'ghost' | 'danger';
-  loading?: boolean;
-  done?: boolean;
-};
-export function Button({ className='', variant='primary', loading, done, children, ...rest }: BtnProps) {
-  const base =
-    'inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm ' +
-    'border transition focus:outline-none focus:ring-2 focus:ring-offset-2 ' +
-    'active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed';
-  const tone = useMemo(() => {
-    if (variant === 'ghost')  return 'border-zinc-600 hover:bg-zinc-800';
-    if (variant === 'danger') return 'border-red-600 bg-red-700/20 hover:bg-red-700/30';
-    return 'border-zinc-600 bg-zinc-800 hover:bg-zinc-700'; // primary
-  }, [variant]);
-
+export function SectionTitle({ kicker, children }: { kicker?: string; children: React.ReactNode }) {
   return (
-    <button
-      className={`${base} ${tone} ${className}`}
-      {...rest}
-    >
-      {loading ? 'Saving…' : done ? 'Saved ✓' : children}
-    </button>
+    <div style={{marginBottom:8}}>
+      {kicker && <p className="small" style={{textTransform:'uppercase', letterSpacing:.5}}>{kicker}</p>}
+      <h2 style={{fontSize:'1.15rem', fontWeight:700}}>{children}</h2>
+    </div>
   );
 }
 
-export function Card({children, className=''}:{children:React.ReactNode; className?:string}) {
-  return <div className={`rounded-2xl border border-zinc-700 p-4 ${className}`}>{children}</div>;
+type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'ghost';
+  full?: boolean;
+  loading?: boolean;
+  done?: boolean;
+};
+export function Button({ variant='primary', full, loading, done, className='', children, ...rest }: BtnProps) {
+  const cls = `${variant==='ghost' ? 'btn-ghost' : 'btn'} ${full ? 'w-full' : ''} ${className}`;
+  const label = loading ? 'Please wait…' : done ? 'Done ✓' : children;
+  return <button className={cls} {...rest}>{label}</button>;
 }
 
-export function SectionTitle({children}:{children:React.ReactNode}) {
-  return <h2 className="text-xl font-semibold mb-2">{children}</h2>;
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
+  return <input ref={ref} className="input" {...props} />;
+});
+
+export function Label({ children }: { children: React.ReactNode }) {
+  return <label className="label">{children}</label>;
 }
 
-export function Tag({children, tone='ok'}:{children:React.ReactNode; tone?:'ok'|'err'|'muted'}) {
-  const map = {
-    ok: 'bg-green-500/15 text-green-300 border-green-600/30',
-    err: 'bg-red-500/15 text-red-300 border-red-600/30',
-    muted: 'bg-zinc-500/15 text-zinc-300 border-zinc-600/30',
-  } as const;
-  return <span className={`text-xs px-2 py-1 rounded-lg border ${map[tone]} inline-flex items-center gap-1`}>{children}</span>;
+export function Card({ children, className='', title, actions }: {
+  children: React.ReactNode; className?: string; title?: React.ReactNode; actions?: React.ReactNode;
+}) {
+  return (
+    <section className={`card ${className}`}>
+      {(title || actions) && (
+        <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10}}>
+          {title ? <h3 style={{margin:0, fontSize:'1.05rem'}}>{title}</h3> : <div/>}
+          {actions}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+export function Tag({ children, tone='muted' }: { children: React.ReactNode; tone?: 'ok'|'err'|'muted' }) {
+  const styles: Record<string, React.CSSProperties> = {
+    ok:   { background:'#e8fbef', color:'#166534', border:'1px solid #bbf7d0' },
+    err:  { background:'#fee2e2', color:'#991b1b', border:'1px solid #fecaca' },
+    muted:{ background:'#f3f4f6', color:'#374151', border:'1px solid #e5e7eb' },
+  };
+  return <span style={{...styles[tone], padding:'4px 8px', borderRadius:8, fontSize:12}}>{children}</span>;
 }

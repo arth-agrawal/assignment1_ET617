@@ -1,6 +1,6 @@
-
 'use client';
 export const dynamic = 'force-dynamic';
+
 import { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
@@ -29,12 +29,10 @@ export default function Admin() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { router.push('/login'); return; }
       try {
-        const q = query(collection(db, 'events'), orderBy('ts','desc'), limit(200));
-        const snap = await getDocs(q);
+        const qy = query(collection(db, 'events'), orderBy('ts','desc'), limit(200));
+        const snap = await getDocs(qy);
         setRows(snap.docs.map(d => ({ id: d.id, ...d.data() } as Row)));
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     });
     return () => unsub();
   }, [router]);
@@ -57,47 +55,47 @@ export default function Admin() {
   }
 
   return (
-    <main className="p-6 max-w-6xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">Events</h1>
-        <div className="flex gap-3">
-          <Button onClick={()=>router.push('/dashboard')} variant="ghost">Back to Dashboard</Button>
+    <div className="stack-lg">
+      <div style={{display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+        <SectionTitle>Events</SectionTitle>
+        <div style={{display:'flex', gap:10}}>
+          <Button variant="ghost" onClick={()=>router.push('/dashboard')}>Back to Dashboard</Button>
           <Button onClick={exportCSV}>Export CSV</Button>
         </div>
       </div>
 
       <Card>
-        <SectionTitle>Latest 200 events</SectionTitle>
+        <SectionTitle kicker="Latest">Last 200 events</SectionTitle>
         {loading ? (
-          <p className="text-sm text-zinc-400">Loading…</p>
+          <p className="small">Loading…</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-zinc-400">No events yet.</p>
+          <p className="small">No events yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-[900px] w-full border border-zinc-700 text-sm">
-              <thead className="bg-zinc-900/40">
+          <div className="table-wrap">
+            <table>
+              <thead>
                 <tr>
-                  {['Time','User','Type','Path','Component','Payload','Origin'].map(h => (
-                    <th key={h} className="border border-zinc-700 px-2 py-2 text-left">{h}</th>
-                  ))}
+                  <th>Time</th>
+                  <th>User</th>
+                  <th>Type</th>
+                  <th>Path</th>
+                  <th>Component</th>
+                  <th>Payload</th>
+                  <th>Origin</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map(r => (
-                  <tr key={r.id} className="hover:bg-zinc-900/30">
-                    <td className="border border-zinc-700 px-2 py-1 whitespace-nowrap">
-                      {r.ts?.toDate?.().toLocaleString?.() ?? ''}
-                    </td>
-                    <td className="border border-zinc-700 px-2 py-1">{r.userId}</td>
-                    <td className="border border-zinc-700 px-2 py-1">
+                  <tr key={r.id}>
+                    <td>{r.ts?.toDate?.().toLocaleString?.() ?? ''}</td>
+                    <td>{r.userId}</td>
+                    <td>
                       <Tag tone={r.type?.includes('error') ? 'err' : 'muted'}>{r.type}</Tag>
                     </td>
-                    <td className="border border-zinc-700 px-2 py-1">{r.path}</td>
-                    <td className="border border-zinc-700 px-2 py-1">{r.component}</td>
-                    <td className="border border-zinc-700 px-2 py-1 text-xs">
-                      <pre className="whitespace-pre-wrap break-all">{JSON.stringify(r.payload, null, 0)}</pre>
-                    </td>
-                    <td className="border border-zinc-700 px-2 py-1">{r.origin}</td>
+                    <td>{r.path}</td>
+                    <td>{r.component}</td>
+                    <td><pre style={{whiteSpace:'pre-wrap', wordBreak:'break-all', margin:0}}>{JSON.stringify(r.payload ?? {}, null, 0)}</pre></td>
+                    <td>{r.origin}</td>
                   </tr>
                 ))}
               </tbody>
@@ -105,6 +103,6 @@ export default function Admin() {
           </div>
         )}
       </Card>
-    </main>
+    </div>
   );
 }
